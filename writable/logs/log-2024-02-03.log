@@ -1,0 +1,7 @@
+CRITICAL - 2024-02-03 11:52:07 --> Call to undefined method App\Models\LeaguePlayerMappingModel::getPlayersByLeagueId
+in SYSTEMPATH\Model.php on line 873.
+ 1 APPPATH\Controllers\League.php(26): CodeIgniter\Model->__call('getPlayersByLeagueId', [...])
+ 2 SYSTEMPATH\CodeIgniter.php(942): App\Controllers\League->getPlayersByTeamId('2')
+ 3 SYSTEMPATH\CodeIgniter.php(502): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\League))
+ 4 SYSTEMPATH\CodeIgniter.php(361): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 FCPATH\index.php(79): CodeIgniter\CodeIgniter->run()
