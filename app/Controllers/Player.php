@@ -9,6 +9,10 @@ use CodeIgniter\Controller;
 
 class Player extends Controller
 {
+    public function __construct()
+    {
+        $this->db = \Config\Database::connect();
+    }
     public function Player()
     {
         $playerModel = new PlayerModel();
@@ -18,6 +22,33 @@ class Player extends Controller
         $data['leagues'] = $leagueModel->findAll(); 
 
         return view('Player', $data);
+    }
+
+    public function updatePlayerData()
+    {
+        $playerModel = new PlayerModel();
+        $response = ['success' => false, 'message' => ''];
+
+        // Get data from AJAX request
+        $playerId = $this->request->getPost('id');
+        $field = $this->request->getPost('field');
+        $value = $this->request->getPost('value');
+
+        // Validate data (add your validation rules)
+        if (!isset($playerId) || !isset($field) || !isset($value)) {
+            $response['message'] = 'Invalid input data.';
+        } else {
+            // Update player data in the database
+            try {
+                $playerModel->update($playerId, [$field => $value]);
+                $response['success'] = true;
+                $response['message'] = 'Player data saved.';
+            } catch (\Exception $e) {
+                $response['message'] = 'Failed to update player data.';
+            }
+        }
+
+        return $this->response->setJSON($response);
     }
 
     public function addPlayerAndMapToLeague()
@@ -38,39 +69,31 @@ class Player extends Controller
         $playerId = $playerModel->insert($playerData);
 
         // Handle image upload
-        $imageData = $this->request->getPost('image');
+        $imageData = $this->request->getFile('image');
 
-        if (!empty($imageData)) {
-            // Decode base64-encoded image data
-            $decodedImage = base64_decode($imageData);
-
-            // Check if decoding was successful
-            if ($decodedImage === false) {
-                return $this->handleError('Invalid image data');
-            }
-
-            // Get the MIME type of the image (assuming it's a JPEG, you may need to adjust accordingly)
-            $mime = finfo_buffer(finfo_open(), $decodedImage, FILEINFO_MIME_TYPE);
-
-            // Check if MIME type is valid (you may need to adjust this based on your allowed types)
-            if (!in_array($mime, ['image/jpeg', 'image/png', 'image/gif'])) {
-                return $this->handleError('Invalid image format');
-            }
+        // Check if an image was uploaded
+        if ($imageData->isValid() && !$imageData->hasMoved()) {
+            // Read the image file and encode it as base64
+            $base64Image = base64_encode(file_get_contents($imageData->getRealPath()));
 
             // Update the 'image' field in the player record with the base64-encoded image data
-            $playerModel->update($playerId, ['image' => $imageData]);
+            $playerModel->update($playerId, ['image' => $base64Image]);
         }
 
         // Sample league ID, replace with actual form input or dynamic data
-        $leagueId = $this->request->getPost('league_id');
+        $teamid = $this->request->getPost('teamid');
 
         // Map player to league
         $mappingData = [
             'playerId' => $playerId,
-            'leagueId' => $leagueId,
+            'teamid' => $teamid,
         ];
 
         $mappingModel->insert($mappingData);
+
+        // Debugging queries
+        $lastQuery = $this->db->getLastQuery();
+        echo $lastQuery;
 
         // Check if the request is AJAX
         if ($this->request->isAJAX()) {
@@ -79,6 +102,8 @@ class Player extends Controller
             return redirect()->to('addleague')->with('success', 'Player added successfully');
         }
     }
+    
+
 
     private function handleError($message)
     {

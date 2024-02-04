@@ -14,7 +14,7 @@ class LeaguePlayerMappingModel extends Model
     {
         // Query to get players for the selected league
         $query = $this->db->table('leagueplayermapping')
-                         ->where('leagueId', $teamid)
+                         ->where('teamid', $teamid)
                          ->join('player', 'player.id = leagueplayermapping.playerid')
                          ->get();
 

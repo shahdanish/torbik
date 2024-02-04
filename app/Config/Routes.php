@@ -8,6 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 // $routes->get('home', 'Home::index');
 $routes->get('player', 'Player::player');
 $routes->post('addPlayerAndMapToLeague', 'Player::addPlayerAndMapToLeague');
+$routes->post('updatePlayerData', 'Player::updatePlayerData');
 // $routes->get('player', 'Player::addPlayer');
 $routes->get('addleague', 'AddLeague::League');
 $routes->post('addleaguedata', 'AddLeague::addLeague');

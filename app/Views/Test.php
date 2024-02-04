@@ -19,6 +19,7 @@
 
         .navbar-nav .nav-link {
             font-size: 20px;
+            color: white;
         }
 
         .league-item.selected {
@@ -92,15 +93,19 @@
             z-index: 1;
         }
 
+        .submenu ul {
+            padding: 0;
+        }
+
         .submenu ul li {
-            
+            list-style-type: none;
         }
 
         .submenu a {
             padding: 8px 8px 8px 32px;
             text-decoration: none;
             font-size: 18px;
-            color: #6aa0d2;
+            color: white;
             display: block;
             transition: 0.3s;
         }
@@ -120,10 +125,10 @@
 
 <nav class="navbar navbar-expand-lg navbar navbar-dark" style="background-color: #0762b4;" id="Navmenu">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#"><h3><button class="openbtn" style="margin-top: 12px;">☰ Menu</button></h3></a>
+        <!-- <a class="navbar-brand" href="#"><h3><button class="openbtn" style="margin-top: 12px;">☰ Menu</button></h3></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-        </button>
+        </button> -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <?php foreach ($leagues as $league) : ?>
@@ -147,11 +152,11 @@
     </div>
 </nav>
 
-<div id="mySidebar" class="sidebar">
+<!-- <div id="mySidebar" class="sidebar">
     <a href="javascript:void(0)" class="closebtn">×</a>
     <a href="#" id="loadPlayer"><i class="fa fa-users" aria-hidden="true"></i> Players</a>
     <a href="#" id="loadLeague"><i class="fa fa-trophy" aria-hidden="true"></i> Leagues</a>
-</div>
+</div> -->
 
 <div id="main">
     <div id="content-container">
@@ -184,6 +189,7 @@
                     // Check if the league data is available
                     if (data.trim()) {
                         // Update the content-container with the fetched data
+                        $('#content-container').attr("data-teamid",teamid);
                         $('#content-container').html(data);
                     } else {
                         // If no league data is available, hide the container
