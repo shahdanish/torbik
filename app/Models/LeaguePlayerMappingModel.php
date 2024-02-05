@@ -20,4 +20,27 @@ class LeaguePlayerMappingModel extends Model
 
         return $query->getResultArray();
     }
+
+    public function getTeamIdByPlayerId($playerId)
+    {
+        $query = $this->db->table('leagueplayermapping')
+                        ->select('teamid')
+                        ->where('playerId', $playerId)
+                        ->get();
+
+        $result = $query->getRow();
+
+        return $result ? $result->teamid : null;
+    }
+
+    // LeaguePlayerMappingModel
+    public function updatePlayerTeam($playerId, $teamId)
+    {
+        // Update the teamId for the specified playerId
+        $data = ['teamid' => $teamId];
+        $this->where('playerId', $playerId)->set($data)->update();
+
+        return $this->db->affectedRows() > 0;
+    }
+
 }

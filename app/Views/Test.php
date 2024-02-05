@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="//cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
     <style>
         .navbar {
             height: 75px;
@@ -125,10 +126,10 @@
 
 <nav class="navbar navbar-expand-lg navbar navbar-dark" style="background-color: #0762b4;" id="Navmenu">
     <div class="container-fluid">
-        <!-- <a class="navbar-brand" href="#"><h3><button class="openbtn" style="margin-top: 12px;">☰ Menu</button></h3></a>
+        <a class="navbar-brand" href="#"><h3><button class="openbtn" style="margin-top: 12px;">☰ Menu</button></h3></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-        </button> -->
+        </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <?php foreach ($leagues as $league) : ?>
@@ -152,11 +153,11 @@
     </div>
 </nav>
 
-<!-- <div id="mySidebar" class="sidebar">
+<div id="mySidebar" class="sidebar">
     <a href="javascript:void(0)" class="closebtn">×</a>
     <a href="#" id="loadPlayer"><i class="fa fa-users" aria-hidden="true"></i> Players</a>
     <a href="#" id="loadLeague"><i class="fa fa-trophy" aria-hidden="true"></i> Leagues</a>
-</div> -->
+</div>
 
 <div id="main">
     <div id="content-container">
@@ -168,9 +169,11 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 <script src="//cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
 
 <script>
     $(document).ready(function () {
+        LoadPlayerGenericGrid();
         // Make an Ajax call when a league menu item is clicked
         $('.team-item').click(function (e) {
             debugger;
@@ -208,6 +211,11 @@
             e.preventDefault();
 
             // Make an AJAX request to "player" to load "player" view file
+            LoadPlayerGenericGrid();
+        });
+
+        function LoadPlayerGenericGrid()
+        {
             $.ajax({
                 url: "<?= base_url('player'); ?>",
                 method: "GET", // or "POST" based on your implementation
@@ -219,7 +227,7 @@
                     console.error("Error loading content:", error);
                 }
             });
-        });
+        }
 
         // CLICK on SIDE-BAR item LEAGUE and load "addleague" view file
         $("#loadLeague").on("click", function (e) {

@@ -15,6 +15,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="//cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet">
     <script src="//cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <!-- Include toastr.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
     
    
 </head>
@@ -23,13 +27,13 @@
 
     <div class="container mt-5">
      <div class="card">
-        <div class="card-header d-flex justify-content-between">
+        <!-- <div class="card-header d-flex justify-content-between">
             <h3>Player List</h3>
             <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#AddUser" aria-controls="offcanvasRight">
                 <i class="fas fa-user-plus"></i>Add Player
             </button>
            
-        </div>
+        </div> -->
         <div class="card-body">
             <table id="playerTable" class="table table-hover">
                 <thead>
@@ -40,6 +44,7 @@
                         <th>FirstName</th>
                         <th>LastName</th>
                         <th>Image</th>
+                        <th>Select Team</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +56,15 @@
                             <td><?= $player['lastname']; ?></td>
                             <td><?= $player['Date_of_birth']; ?></td>
                             <td class="player-image"><img src="data:image/jpeg;base64,<?= $player['image']; ?>" alt="Player Image" width="50" ></td>
-                            
+                            <td> 
+                                <select name="teamid" id="teamid" class="form-select chosen-select" data-playerid="<?= $player['id']; ?>">
+                                    <?php foreach ($teams as $team) : ?>
+                                        <option value="<?= $team['id']; ?>" <?= ($player['teamId'] == $team['id']) ? 'selected' : ''; ?>>
+                                            <?= $team['name']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -59,108 +72,39 @@
         </div>
     </div>
     </div>
-    <!-- Add User Off canves body -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="AddUser" aria-labelledby="offcanvasRightLabel">
-      <div class="offcanvas-header">
-         <h4 id="offcanvasRightLabel">Add Player</h4>
-         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-   <div class="offcanvas-body">
-    <!-- Bootstrap Canvas Body -->
-    <div class="container mt-5">
-    <div id="alertContainer"></div>
-    <form id="addPlayerForm">
-        <!-- First Row -->
-        <div class="row mb-3">
-            <div class="col">
-                <label for="firstname" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="firstname" name="firstname" placeholder="Enter first name">
-            </div>
-            <div class="col">
-                <label for="lastname" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="lastname" name="lastname" placeholder="Enter last name">
-            </div>
-        </div>
-
-        <!-- Second Row -->
-        <div class="row mb-3">
-            <div class="col">
-                <label for="dateOfBirth" class="form-label">Date of Birth</label>
-                <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth">
-            </div>
-            <div class="col">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name">
-            </div>
-        </div>
-
-        <!-- Third Row -->
-        <div class="row mb-3">
-            <div class="col">
-                <label for="image" class="form-label">Choose Image</label>
-                <input type="file" class="form-control" id="image" name="image">
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <label for="league_id" class="form-label">Select League</label>
-            <!-- Add the form-select class for Bootstrap styling -->
-            <select name="league_id" id="league_id" class="form-select">
-                <?php foreach ($leagues as $league) : ?>
-                    <option value="<?= $league['id']; ?>"><?= $league['name']; ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-</div>
-  </div>
 </div>
 
     <script>
         $(document).ready(function () {
             $('#playerTable').DataTable();
-            
-            $('#addPlayerForm').submit(function (e) {
-            e.preventDefault(); // Prevent the default form submission
+            $(".chosen-select").chosen();
+             // Handle change event for team dropdown
+            $('#teamid').on('change', function () {
+                debugger;
+                var playerId = $(this).data('playerid');
+                var selectedTeamId = $(this).val();
 
-            // Serialize form data
-            var formData = $(this).serialize();
-
-            // Make an AJAX request to the server
-            $.ajax({
-                type: 'POST',
-                url: '<?= base_url('addPlayerAndMapToLeague'); ?>', // Adjust the URL based on your route
-                data: formData,
-                success: function (response) {
-                    // Display success message or handle the response as needed
-                    $('#alertContainer').html(response);
-                    setTimeout(function () {
-                        $("#AddUser .btn-close").click();
-                        $.ajax({
-                            url: "<?= base_url('player'); ?>",
-                            method: "GET", // or "POST" based on your implementation
-                            success: function (data) {
-                                // Update the content container with the loaded data
-                                $("#content-container").html(data);
-                            },
-                            error: function (xhr, status, error) {
-                                console.error("Error loading content:", error);
-                            }
-                        });
-                    }, 1000); // 1000 milliseconds = 1 second
-                },
-                error: function (xhr, status, error) {
-                    // Handle errors
-                    console.error('Error:', error);
-
-                    // Display an error message or take appropriate action
-                }
-            });
-        });
-        
+                // Make an AJAX call to update the player's team
+                $.ajax({
+                    url: '<?= base_url('updatePlayerTeam'); ?>',
+                    method: 'POST',
+                    data: {
+                        playerId: playerId,
+                        teamId: selectedTeamId
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            toastr.success("Team updated successfully!");
+                        } else {
+                            toastr.error("Failed to update team.");
+                        }
+                    },
+                    error: function () {
+                        toastr.error("Failed to update team. Please try again.");
+                    }
+                });
+            });   
+                
         });
     </script>
 

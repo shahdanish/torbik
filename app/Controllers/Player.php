@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\PlayerModel;
 use App\Models\LeagueModel;
+use App\Models\TeamModel;
 use App\Models\LeaguePlayerMappingModel;
 use CodeIgniter\Controller;
 
@@ -17,12 +18,40 @@ class Player extends Controller
     {
         $playerModel = new PlayerModel();
         $data['players'] = $playerModel->findAll();
-
-        $leagueModel = new LeagueModel();
-        $data['leagues'] = $leagueModel->findAll(); 
-
+    
+        $teamModel = new TeamModel();
+        $data['teams'] = $teamModel->findAll(); 
+    
+        // Add team information to each player
+        $mappingModel = new LeaguePlayerMappingModel();
+        foreach ($data['players'] as &$player) {
+            $player['teamId'] = $mappingModel->getTeamIdByPlayerId($player['id']);
+        }
+    
         return view('Player', $data);
     }
+
+    // Player controller
+    public function updatePlayerTeam()
+    {
+        $request = $this->request;
+        $playerId = $request->getPost('playerId');
+        $teamId = $request->getPost('teamId');
+
+        // Update the player's team in your mapping table
+        $leaguePlayerMappingModel = new LeaguePlayerMappingModel();
+        $result = $leaguePlayerMappingModel->updatePlayerTeam($playerId, $teamId);
+
+        if ($result) {
+            $response['success'] = true;
+        } else {
+            $response['success'] = false;
+        }
+
+        // Return the JSON response
+        return $this->response->setJSON($response);
+    }
+
 
     public function updatePlayerData()
     {
