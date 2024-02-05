@@ -27,8 +27,8 @@
                             <th>Name</th>
                             <th>Date of Birth</th>
                             <th>Age</th>
-                            <th>FirstName</th>
-                            <th>LastName</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
                             <th>image</th>
                             <th>action</th>
                         </tr>
@@ -37,17 +37,17 @@
                         <?php foreach ($players as $player) : ?>
                             <tr>
                                 <td><?= $player['id']; ?></td>
-                                <td class="editable" data-field="name"><?= $player['name']; ?><span class="edit-icons"><i class="fas fa-check text-success save-icon"></i><i class="fas fa-times text-danger cancel-icon"></i></span></td>
+                                <td class="editable" data-field="name"><?= $player['name']; ?><span class="edit-icons"></td>
                                 <?php
                                 // Assuming $player['Date_of_birth'] is in the format 'Y-m-d'
                                 $dateOfBirth = new DateTime($player['Date_of_birth']);
                                 $today = new DateTime();
                                 $age = $today->diff($dateOfBirth)->y;
                                 ?>
-                                <td class="editable" data-field="Date_of_birth"><?= $player['Date_of_birth']; ?><span class="edit-icons"><i class="fas fa-check text-success save-icon"></i><i class="fas fa-times text-danger cancel-icon"></i></span></td>
+                                <td class="editable" data-field="Date_of_birth"><?= $player['Date_of_birth']; ?></td>
                                 <td><?= $age; ?> years</td>
-                                <td class="editable" data-field="firstname"><?= $player['firstname']; ?><span class="edit-icons"><i class="fas fa-check text-success save-icon"></i><i class="fas fa-times text-danger cancel-icon"></i></span></td>
-                                <td class="editable" data-field="lastname"><?= $player['lastname']; ?><span class="edit-icons"><i class="fas fa-check text-success save-icon"></i><i class="fas fa-times text-danger cancel-icon"></i></span></td>
+                                <td class="editable" data-field="firstname"><?= $player['firstname']; ?><span class="edit-icons"></td>
+                                <td class="editable" data-field="lastname"><?= $player['lastname']; ?><span class="edit-icons"></td>
                                 <td class="editable" data-field="image">
                                     <img style="max-width:100px;" src="data:image/png;base64,<?= $player['image']; ?>" alt="Base64 Image"> 
                                 <td>
@@ -64,89 +64,95 @@
         </div>
     </div>
 
-    <script>
+<script>
     $(document).ready(function () {
         var table = $('#playerData').DataTable({
             "paging": false,
             "ordering": false // Disable sorting
         });
-        
+        debugger;
+         // Get the column index for 'Age'
+         var ageColumnIndex = null;
 
-        // Handle cell click for inline editing
-        $('#playerData tbody').on('click', 'td.editable', function () {
-            var cell = table.cell(this);
-
-            if (!cell.node().classList.contains('editing')) {
-                // Entering edit mode
-                cell.node().classList.add('editing');
-                var originalValue = cell.node().innerText;
-                var input = $('<input type="text" class="form-control"  value="' + originalValue + '">');
-                var icons = $('<span class="edit-icons"><i class="fas fa-check text-success"></i>&nbsp;<i class="fas fa-times text-danger"></i></span>');
-
-
-                input.focus();
-
-                var blurTimeout;
-                input.blur(function () {
-                    // Do nothing if already clicked on tick or cross icons
-                    if (!icons.find('.fa-check, .fa-times').is(':focus')) {
-                        clearTimeout(blurTimeout); // Clear the previous timeout
-                        blurTimeout = setTimeout(function () {
-                            cell.data(originalValue).draw();
-                            cell.node().classList.remove('editing');
-                            icons.remove();
-                        }, 100); // Adjust the delay as needed
-                    }
-                });
-
-                icons.find('.fa-check').click(function () {
-                    debugger;
-                    // Save changes
-                    var newValue = input.val();
-                    var field = cell.node().getAttribute('data-field');
-                    var playerId = table.row(cell.index().row).data()[0];
-                    $.ajax({
-                        url: '<?= base_url('updatePlayerData'); ?>',
-                        method: 'POST',
-                        data: {
-                            id: playerId,
-                            field: field,
-                            value: newValue
-                        },
-                        success: function (response) {
-                            if (response.success) {
-                                // Update the cell with the new value
-                                cell.data(newValue).draw();
-                            } else {
-                                console.error(response.message);
-                            }
-                        },
-                        error: function () {
-                            console.error('Failed to update player data.');
-                        }
-                    });
-                    // Add your logic here to save the changes to the database
-                    // For example, you can make an AJAX call to update the database
-                    // After saving, update the cell with the new value
-                    cell.data(newValue).draw();
-                    cell.node().classList.remove('editing');
-                    icons.remove();
-                });
-
-                icons.find('.fa-times').click(function () {
-                    // Cancel changes
-                    cell.data(originalValue).draw();
-                    cell.node().classList.remove('editing');
-                    icons.remove();
-                });
-                
-                // Replace the cell content with the input and icons
-                cell.data('').node().appendChild(input[0]);
-                cell.node().appendChild(icons[0]);
-
+        $('#playerData thead th').each(function (index) {
+            if (this.innerText.trim() === 'Age') {
+                ageColumnIndex = index;
+                return false; // Exit the loop
             }
         });
-        $('.edit-icons').remove();
+        // Handle cell click for inline editing
+        $('#playerData tbody').on('click', 'td.editable', function (event) {
+            debugger;
+                if($(".editing").length > 0 && !$(event.target).closest('td.editable').is($(".editing"))) {
+                    var that = $(".editing");
+                    var cellopened = table.cell(that);
+                    cellopened.data(that.find("input").val()).draw();
+                    cellopened.node().classList.remove('editing');
+                }
+                // if($(".editing").length > 0) {
+                //     var thatinput = $(".editing").find("input");
+                //     thatinput.blur();
+                // }
+                var cell = table.cell(this);
+
+                if (!cell.node().classList.contains('editing')) {
+                    // Entering edit mode
+                    cell.node().classList.add('editing');
+                    var originalValue = cell.node().innerText;
+                    var input = $('<input type="text" class="form-control" value="' + originalValue + '">');
+
+                    setTimeout(function () {
+                        input.focus();
+
+                        // Set cursor position to the end of the input value
+                        var inputLength = input.val().length;
+                        input[0].setSelectionRange(inputLength, inputLength);
+                    }, 100);
+
+                    input.blur(function () {
+                        debugger;
+                        var newValue = input.val();
+                        var field = cell.node().getAttribute('data-field');
+                        var playerId = table.row(cell.index().row).data()[0];
+
+                        if (field === 'Date_of_birth') {
+                            // Update the age column when Date_of_birth is changed
+                            var newAge = calculateAge(newValue);
+                            var ageCell = table.cell(cell.index().row, ageColumnIndex);
+                            ageCell.data(newAge + ' years').draw();
+                        }
+
+                        $.ajax({
+                            url: '<?= base_url('updatePlayerData'); ?>',
+                            method: 'POST',
+                            data: {
+                                id: playerId,
+                                field: field,
+                                value: newValue
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    // Update the cell with the new value
+                                    cell.data(newValue).draw();
+                                } else {
+                                    console.error(response.message);
+                                }
+                            },
+                            error: function () {
+                                console.error('Failed to update player data.');
+                            }
+                        });
+
+                        // Exit edit mode
+                        debugger;
+                        cell.node().classList.remove('editing');
+                    });
+
+                    // Replace the cell content with the input
+                    cell.data('').node().appendChild(input[0]);
+                    //input.focus();
+                }
+            });
          // Add an empty row with input fields (except for the image) at the end of the table
         var emptyRow = [
             '', // ID
@@ -222,27 +228,7 @@
                 processData: false,
                 success: function (response) {
                     toastr.success("Player Saved Successfully!");
-                    var teamid = $('#content-container').data('teamid');
-                    // Use AJAX to fetch player data for the selected league
-                    $.ajax({
-                        url: '<?= base_url('getPlayersByTeamId/'); ?>' + teamid,
-                        method: 'GET',
-                        success: function (data) {
-                            // Check if the league data is available
-                            if (data.trim()) {
-                                // Update the content-container with the fetched data
-                                $('#content-container').attr("data-teamid",teamid);
-                                $('#content-container').html(data);
-                            } else {
-                                // If no league data is available, hide the container
-                                $('#content-container').html('');
-                            }
-                        },
-                        error: function () {
-                            // Handle errors if any
-                            console.log('Error fetching player data.');
-                        }
-                    });
+                    LoadPlayersGrid();
                 },
                 error: function () {
                     toastr.error('Failed to add player.');
@@ -251,6 +237,44 @@
         });
        
     });
+
+    function LoadPlayersGrid() {
+        var teamid = $('#content-container').data('teamid');
+        // Use AJAX to fetch player data for the selected league
+        $.ajax({
+            url: '<?= base_url('getPlayersByTeamId/'); ?>' + teamid,
+            method: 'GET',
+            success: function (data) {
+                // Check if the league data is available
+                if (data.trim()) {
+                    // Update the content-container with the fetched data
+                    $('#content-container').attr("data-teamid",teamid);
+                    $('#content-container').html(data);
+                } else {
+                    // If no league data is available, hide the container
+                    $('#content-container').html('');
+                }
+            },
+            error: function () {
+                // Handle errors if any
+                console.log('Error fetching player data.');
+            }
+        });
+    }
+
+    // Function to calculate age from date of birth
+    function calculateAge(dateOfBirth) {
+        var today = new Date();
+        var dob = new Date(dateOfBirth);
+        var age = today.getFullYear() - dob.getFullYear();
+
+        // Adjust age if birthday hasn't occurred yet this year
+        if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
+            age--;
+        }
+
+        return age;
+    }
 </script>
 
 
