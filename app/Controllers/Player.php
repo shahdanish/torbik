@@ -16,19 +16,28 @@ class Player extends Controller
     }
     public function Player()
     {
-        $playerModel = new PlayerModel();
-        $data['players'] = $playerModel->findAll();
-    
-        $teamModel = new TeamModel();
-        $data['teams'] = $teamModel->findAll(); 
-    
-        // Add team information to each player
+        $teamId = $this->request->getPost('teamId');
+
         $mappingModel = new LeaguePlayerMappingModel();
+        $playerModel = new PlayerModel();
+        $teamModel = new TeamModel();
+        
+        $data['teams'] = $teamModel->findAll();
+        
+        if (!empty($teamId)) {
+            $data['players'] = $mappingModel->getPlayersByTeamId($teamId);
+        } else {
+            $data['players'] = $playerModel->findAll();
+        }
+        
+        // Add team information to each player
+        
         foreach ($data['players'] as &$player) {
             $player['teamId'] = $mappingModel->getTeamIdByPlayerId($player['id']);
         }
-    
+        
         return view('Player', $data);
+        
     }
 
     // Player controller
@@ -152,11 +161,26 @@ class Player extends Controller
         }
     }
 
+    public function deletePlayer()
+    {
+        $playerId = $this->request->getPost('playerId');
 
+        // Load your model
+        $playerModel = new PlayerModel();
 
+        // Delete the player
+        $deleted = $playerModel->delete($playerId);
 
+        // Return response
+        if ($deleted) {
+            $response['success'] = true;
+        } else {
+            $response['success'] = false;
+            $response['message'] = 'Failed to delete player.';
+        }
 
+        return $this->response->setJSON($response);
+    }
 
-    // New method to handle player addition
    
 }

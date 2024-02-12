@@ -16,6 +16,16 @@
 
     <div class="container mt-5">
         <div class="card">
+            <div class="card-header teamFiltercls">
+                <!-- Add a select dropdown for team filtering -->
+                <select id="teamFilter" class="form-select chosen-select">
+                    <option value="">Filter by Team</option>
+                    <option value="0">All Teams</option>
+                    <?php foreach ($teams as $team) : ?>
+                        <option value="<?= $team['id']; ?>"><?= $team['name']; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="card-header d-flex justify-content-between">
                 <h3>Players</h3>
             </div>
@@ -30,6 +40,7 @@
                             <th>First Name</th>
                             <th>Last Name</th>
                             <th>image</th>
+                            <th>Team</th>
                             <th>action</th>
                         </tr>
                     </thead>
@@ -50,9 +61,19 @@
                                 <td class="editable" data-field="lastname"><?= $player['lastname']; ?><span class="edit-icons"></td>
                                 <td class="editable" data-field="image">
                                     <img style="max-width:100px;" src="data:image/png;base64,<?= $player['image']; ?>" alt="Base64 Image"> 
+                                </td>
+                                <td>
+                                    <select name="teamid" class="form-select chosen-select teamid" data-playerid="<?= $player['id']; ?>">
+                                        <?php foreach ($teams as $team) : ?>
+                                            <option value="<?= $team['id']; ?>" <?= ($player['teamId'] == $team['id']) ? 'selected' : ''; ?>>
+                                                <?= $team['name']; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
                                 <td>
                                     <!-- Delete icon with a link to the delete action -->
-                                    <a href="<?= base_url('delete/' . $player['id']); ?>" title="Delete">
+                                    <a href="#" class="delete-player" data-playerid="<?= $player['id']; ?>" title="Delete">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
@@ -65,12 +86,13 @@
     </div>
 
 <script>
+    //var $j = jQuery.noConflict();
     $(document).ready(function () {
         var table = $('#playerData').DataTable({
-            "paging": false,
+            "paging": true,
+            "pageLength": 50, // Set the default number of records per page to 50
             "ordering": false // Disable sorting
         });
-        debugger;
          // Get the column index for 'Age'
          var ageColumnIndex = null;
 
@@ -82,7 +104,6 @@
         });
         // Handle cell click for inline editing
         $('#playerData tbody').on('click', 'td.editable', function (event) {
-            debugger;
                 if($(".editing").length > 0 && !$(event.target).closest('td.editable').is($(".editing"))) {
                     var that = $(".editing");
                     var cellopened = table.cell(that);
@@ -110,7 +131,6 @@
                     }, 100);
 
                     input.blur(function () {
-                        debugger;
                         var newValue = input.val();
                         var field = cell.node().getAttribute('data-field');
                         var playerId = table.row(cell.index().row).data()[0];
@@ -144,7 +164,6 @@
                         });
 
                         // Exit edit mode
-                        debugger;
                         cell.node().classList.remove('editing');
                     });
 
@@ -153,6 +172,7 @@
                     //input.focus();
                 }
             });
+      
          // Add an empty row with input fields (except for the image) at the end of the table
         var emptyRow = [
             '', // ID
@@ -167,6 +187,12 @@
                     '<button class="btn btn-outline-secondary upload-image-btn" type="button">Upload</button>' +
                 '</div>' +
             '</div>', // Image
+            '<select name="teamid" class="form-select chosen-select newteamid">' +
+                '<option value="">Select Team</option>' +
+                '<?php foreach ($teams as $team) : ?>' +
+                    '<option value="<?= $team['id']; ?>"><?= $team['name']; ?></option>' +
+                '<?php endforeach; ?>' +
+            '</select>', // Team dropdown
             '<button class="btn btn-success save-new-player">Save</button>' // Save button
         ];
 
@@ -213,8 +239,12 @@
             formData.append('dateOfBirth', dateOfBirth);
             formData.append('firstname', firstname);
             formData.append('lastname', lastname);
-            formData.append('teamid', $('#content-container').data('teamid'));
-
+           
+            if($('#content-container').data('teamid') > 0)
+                formData.append('teamid', $('#content-container').data('teamid'));
+            else {
+                formData.append('teamid', $('.newteamid').val());
+            }
             // Get the selected image file
             var imageInput = newRow.find('#imageInput')[0];
             formData.append('image', imageInput.files[0]);
@@ -236,6 +266,48 @@
             });
         });
        
+
+        // Handle click event for the delete icon
+        $('#playerData tbody').on('click', '.delete-player', function () {
+            var playerId = $(this).data('playerid');
+            
+            bootbox.confirm({
+                message: "Are you sure you want to delete this player?",
+                buttons: {
+                    confirm: {
+                        label: 'Yes',
+                        className: 'btn-danger'
+                    },
+                    cancel: {
+                        label: 'No',
+                        className: 'btn-secondary'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        // If user confirms deletion, make AJAX call to delete player
+                        $.ajax({
+                            url: '<?= base_url('deletePlayer'); ?>',
+                            method: 'POST',
+                            data: { playerId: playerId },
+                            success: function (response) {
+                                if (response.success) {
+                                    toastr.success("Player Deleted Successfully!");
+                                    LoadPlayersGrid();
+                                } else {
+                                    toastr.error(response.message);
+                                }
+                            },
+                            error: function () {
+                                toastr.error('Failed to delete player.');
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+
     });
 
     function LoadPlayersGrid() {
@@ -276,9 +348,4 @@
         return age;
     }
 </script>
-
-
-
-
-
 </body>

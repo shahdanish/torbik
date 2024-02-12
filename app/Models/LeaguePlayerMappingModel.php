@@ -16,6 +16,7 @@ class LeaguePlayerMappingModel extends Model
         $query = $this->db->table('leagueplayermapping')
                          ->where('teamid', $teamid)
                          ->join('player', 'player.id = leagueplayermapping.playerid')
+                         ->where('player.isactive', 1) // Filter active players
                          ->get();
 
         return $query->getResultArray();

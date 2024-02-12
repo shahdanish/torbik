@@ -27,17 +27,33 @@ class Test extends Controller
         return view('Test', $data);
     }
     
-    public function getPlayersByLeagueId($leagueId)
+    public function getPlayersByTeamId($teamId)
     {
         // Load models
         $mappingModel = new LeaguePlayerMappingModel();
-
-        // Get player data for the selected league
-        $data['players'] = $mappingModel->getPlayersByLeagueId($leagueId);
-
-        // Pass player data to the view
+        $teamModel = new TeamModel();
+        // Fetch all teams
+        $data['teams'] = $teamModel->findAll();
+    
+        // Output teams for debugging
+        
+        // Get player data for the selected team
+        if ($teamId > 0) {
+            $data['players'] = $mappingModel->getPlayersByTeamId($teamId);
+        } else {
+            $data['players'] = $playerModel->findAll();
+        }
+    
+        foreach ($data['players'] as &$player) {
+            $player['teamId'] = $mappingModel->getTeamIdByPlayerId($player['id']);
+        }
+        
+        // Pass player and team data to the partial view
         return view('Players_partial', $data);
     }
+    
+    
+    
 
     // loading player view in test view href player
     public function player()

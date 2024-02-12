@@ -6,10 +6,11 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 // $routes->get('home', 'Home::index');
-$routes->get('player', 'Player::player');
+$routes->post('player', 'Player::player');
 $routes->post('addPlayerAndMapToLeague', 'Player::addPlayerAndMapToLeague');
 $routes->post('updatePlayerData', 'Player::updatePlayerData');
 $routes->post('updatePlayerTeam', 'Player::updatePlayerTeam');
+$routes->post('deletePlayer', 'Player::deletePlayer');
 // $routes->get('player', 'Player::addPlayer');
 $routes->get('addleague', 'AddLeague::League');
 $routes->post('addleaguedata', 'AddLeague::addLeague');

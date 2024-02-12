@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Test Home</title>
+    <title>Game</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="//cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
+    
+
     <style>
         .navbar {
             height: 75px;
@@ -170,6 +172,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 <script src="//cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+
 
 <script>
     $(document).ready(function () {
@@ -194,6 +198,7 @@
                         // Update the content-container with the fetched data
                         $('#content-container').attr("data-teamid",teamid);
                         $('#content-container').html(data);
+                        $('.teamFiltercls').hide();
                     } else {
                         // If no league data is available, hide the container
                         $('#content-container').html('');
@@ -213,18 +218,58 @@
             // Make an AJAX request to "player" to load "player" view file
             LoadPlayerGenericGrid();
         });
+        // Handle change event for team dropdown
+        $(document).on('change', '.teamid', function () { 
+            var playerId = $(this).data('playerid');
+            var selectedTeamId = $(this).val();
+            // Make an AJAX call to update the player's team
+            $.ajax({
+                url: '<?= base_url('updatePlayerTeam'); ?>',
+                method: 'POST',
+                data: {
+                    playerId: playerId,
+                    teamId: selectedTeamId
+                },
+                success: function (response) {
+                    if (response.success) {
+                        toastr.success("Team updated successfully!");
+                    } else {
+                        toastr.error("Failed to update team.");
+                    }
+                },
+                error: function () {
+                    toastr.error("Failed to update team. Please try again.");
+                }
+            });
+        });
+        $(document).on('change', '#teamFilter', function () { 
+            LoadPlayerGenericGrid();
+        });
 
         function LoadPlayerGenericGrid()
         {
+            var teamid = 0;
+            if($('#teamFilter').length > 0)
+                teamid = $('#teamFilter').val();
+            // Use AJAX to fetch player data for the selected league
             $.ajax({
-                url: "<?= base_url('player'); ?>",
-                method: "GET", // or "POST" based on your implementation
+                url: '<?= base_url('getPlayersByTeamId/'); ?>' + teamid,
+                method: 'GET',
                 success: function (data) {
-                    // Update the content container with the loaded data
-                    $("#content-container").html(data);
+                    // Check if the league data is available
+                    if (data.trim()) {
+                        // Update the content-container with the fetched data
+                        $('#content-container').attr("data-teamid",teamid);
+                        $('#content-container').html(data);
+                        $("#teamFilter").val(teamid);
+                    } else {
+                        // If no league data is available, hide the container
+                        $('#content-container').html('');
+                    }
                 },
-                error: function (xhr, status, error) {
-                    console.error("Error loading content:", error);
+                error: function () {
+                    // Handle errors if any
+                    console.log('Error fetching player data.');
                 }
             });
         }

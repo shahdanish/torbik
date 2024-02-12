@@ -1,5 +1,3 @@
-<!-- app/Views/players/index.php -->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,69 +16,72 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
     <!-- Include toastr.js JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js" integrity="sha512-WOJJesT7Bzueb2N2vuVKpHqg1u3TM4Z9sPT6Ll5ubJNerqO64yN1s/tU8iV2yQrB9ACaL3fJMSl3KjPpb7UG1A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css" integrity="sha512-xO5W8lrRRNpQrA7mwD4FyffONcUWmGNWtwmrWGtUUbOIlbQ9XgCV9GQbEiVX8AubvGR/ooN4jv2YgihKKzEzvQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    
-   
 </head>
 
 <body>
 
     <div class="container mt-5">
-     <div class="card">
-        <!-- <div class="card-header d-flex justify-content-between">
-            <h3>Player List</h3>
-            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#AddUser" aria-controls="offcanvasRight">
-                <i class="fas fa-user-plus"></i>Add Player
-            </button>
-           
-        </div> -->
-        <div class="card-body">
-            <table id="playerTable" class="table table-hover">
-                <thead>
-                    <tr class="table-secondary">
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Date of Birth</th>
-                        <th>FirstName</th>
-                        <th>LastName</th>
-                        <th>Image</th>
-                        <th>Select Team</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($players as $player) : ?>
-                        <tr>
-                            <td><?= $player['id']; ?></td>
-                            <td><?= $player['name']; ?></td>
-                            <td><?= $player['firstname']; ?></td>
-                            <td><?= $player['lastname']; ?></td>
-                            <td><?= $player['Date_of_birth']; ?></td>
-                            <td class="player-image"><img src="data:image/jpeg;base64,<?= $player['image']; ?>" alt="Player Image" width="50" ></td>
-                            <td> 
-                                <select name="teamid" id="teamid" class="form-select chosen-select" data-playerid="<?= $player['id']; ?>">
-                                    <?php foreach ($teams as $team) : ?>
-                                        <option value="<?= $team['id']; ?>" <?= ($player['teamId'] == $team['id']) ? 'selected' : ''; ?>>
-                                            <?= $team['name']; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </td>
-                        </tr>
+        <div class="card">
+            <div class="card-header">
+                <!-- Add a select dropdown for team filtering -->
+                <select id="teamFilter" class="form-select chosen-select">
+                    <option value="">Filter by Team</option>
+                    <option value="0">All Teams</option>
+                    <?php foreach ($teams as $team) : ?>
+                        <option value="<?= $team['id']; ?>"><?= $team['name']; ?></option>
                     <?php endforeach; ?>
-                </tbody>
-            </table>
+                </select>
+            </div>
+            <div class="card-body">
+                <table id="playerTable" class="table table-hover">
+                    <thead>
+                        <tr class="table-secondary">
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Date of Birth</th>
+                            <th>FirstName</th>
+                            <th>LastName</th>
+                            <th>Image</th>
+                            <th>Select Team</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($players as $player) : ?>
+                            <tr>
+                                <td><?= $player['id']; ?></td>
+                                <td><?= $player['name']; ?></td>
+                                <td><?= $player['firstname']; ?></td>
+                                <td><?= $player['lastname']; ?></td>
+                                <td><?= $player['Date_of_birth']; ?></td>
+                                <td class="player-image"><img src="data:image/jpeg;base64,<?= $player['image']; ?>" alt="Player Image" width="50" ></td>
+                                <td>
+                                    <select name="teamid" class="form-select chosen-select teamid" data-playerid="<?= $player['id']; ?>">
+                                        <?php foreach ($teams as $team) : ?>
+                                            <option value="<?= $team['id']; ?>" <?= ($player['teamId'] == $team['id']) ? 'selected' : ''; ?>>
+                                                <?= $team['name']; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-    </div>
-</div>
 
     <script>
         $(document).ready(function () {
-            $('#playerTable').DataTable();
-            $(".chosen-select").chosen();
-             // Handle change event for team dropdown
-            $('#teamid').on('change', function () {
-                debugger;
+            var playertable = $('#playerTable').DataTable({
+                "pageLength": 50, // Set the default number of records per page to 50
+            });
+
+            // Handle change event for team dropdown
+            $('.teamid').on('change', function () {
                 var playerId = $(this).data('playerid');
                 var selectedTeamId = $(this).val();
 
@@ -103,8 +104,17 @@
                         toastr.error("Failed to update team. Please try again.");
                     }
                 });
-            });   
-                
+            });
+
+            // Handle change event for team filter dropdown
+            // Handle change event for team filter dropdown
+        // $('#teamFilter').on('change', function () {
+        //     var selectedTeamId = $(this).val();
+
+        //     // Filter DataTable based on selected team
+        //     playertable.column(6).search(selectedTeamId ? '^' + selectedTeamId + '$' : '', true, false).draw();
+        // });
+
         });
     </script>
 
